@@ -1,12 +1,10 @@
-import { useThree } from "@react-three/fiber";
 import { myPlayer } from "playroomkit";
-import { useGameState } from "./hooks/useGameState";
+import { useGameState } from "./hooks/use-game-state";
 import { CharacterController } from "./CharacterController";
 
 export const Experience = () => {
-  const { players, stage } = useGameState();
+  const { players } = useGameState();
   const me = myPlayer();
-  const camera = useThree((state) => state.camera);
 
   return (
     <>

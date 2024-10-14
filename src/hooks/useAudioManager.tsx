@@ -1,10 +1,20 @@
 import { createContext, useContext, useEffect, useRef, useState } from "react";
 
-const AudioManagerContext = createContext();
+type AudioManager = {
+  playAudio: (file: string, force?: boolean) => void;
+  audioEnabled: boolean;
+  setAudioEnabled: (enabled: boolean) => void;
+};
 
-export const AudioManagerProvider = ({ children }) => {
+const AudioManagerContext = createContext<AudioManager | null>(null);
+
+export const AudioManagerProvider = ({
+  children,
+}: {
+  children: React.ReactNode;
+}) => {
   const lastAudioPlayed = useRef(new Date().getTime());
-  const playAudio = (file, force = false) => {
+  const playAudio = (file: string, force = false) => {
     if (!audioEnabled) {
       return;
     }

@@ -8,7 +8,7 @@ const noise = new Noise(Math.random());
 export const Buildings = () => {
   const maxRange = 90; // Radio máximo
   const minRange = 4.5; // Radio mínimo
-  const numBuildings = 1800; // Cantidad de edificios
+  const numBuildings = 500; // Cantidad de edificios
   const minHeight = 0.5; // Altura mínima
   const maxHeight = 3; // Altura máxima
   const cellSize = 0.5; // Tamaño de cada celda (tamaño del edificio)

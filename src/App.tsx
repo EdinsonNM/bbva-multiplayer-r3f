@@ -2,14 +2,13 @@ import "./App.css";
 import { Canvas } from "@react-three/fiber";
 import {
   Environment,
-  Gltf,
   KeyboardControls,
   OrbitControls,
 } from "@react-three/drei";
 import Bbva from "./bbva";
 import { useMemo } from "react";
 import { AudioManagerProvider } from "./hooks/useAudioManager";
-import { GameStateProvider } from "./hooks/useGameState";
+import { GameStateProvider } from "./hooks/game-state-provider";
 import { Experience } from "./Experience";
 import { Physics, RigidBody } from "@react-three/rapier";
 import { DoubleSide } from "three";
@@ -44,11 +43,12 @@ function App() {
               camera={{ position: [0, 1, 8], fov: 75 }}
             >
               <Physics>
-                <fog attach="fog" color="#fff" near={10} far={150} />
-                <ambientLight
+                <fog attach="fog" color="#fff" near={10} far={100} />
+                <hemisphereLight
                   intensity={1}
-                  position={[0, 0, 0]}
+                  position={[0, 4, 0]}
                   color="#f97316"
+                  groundColor="cyan"
                 />
                 <OrbitControls />
                 <Environment preset="sunset" />
@@ -63,7 +63,7 @@ function App() {
                 <Buildings />
               </Physics>
             </Canvas>
-          </div>{" "}
+          </div>
         </GameStateProvider>
       </AudioManagerProvider>
     </KeyboardControls>

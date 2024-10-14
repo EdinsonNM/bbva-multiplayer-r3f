@@ -3,51 +3,65 @@ import { useFrame } from "@react-three/fiber";
 import {
   CapsuleCollider,
   RigidBody,
+  RigidBodyProps,
   euler,
   quat,
-  vec3,
 } from "@react-three/rapier";
-import { setState } from "playroomkit";
-import { useRef, useState } from "react";
-import { Vector3 } from "three";
+import { useEffect, useRef, useState } from "react";
+import { Group, Vector3 } from "three";
 
 import { Character } from "./Character";
-import { FLOORS, FLOOR_HEIGHT } from "./GameArena";
 import { Controls } from "./App";
-import { useGameState } from "./hooks/useGameState";
-import { useAudioManager } from "./hooks/useAudioManager";
+import { Joystick } from "playroomkit";
 
 const MOVEMENT_SPEED = 4.2;
 const JUMP_FORCE = 8;
 const ROTATION_SPEED = 2.5;
 const vel = new Vector3();
 
+type CharacterControllerProps = {
+  player?: boolean;
+  controls: Joystick;
+  state: any;
+};
 export const CharacterController = ({
   player = false,
   controls,
   state,
   ...props
-}) => {
-  const { playAudio } = useAudioManager();
-  const isDead = state.getState("dead");
+}: CharacterControllerProps & RigidBodyProps) => {
   const [animation, setAnimation] = useState("idle");
-  const { stage } = useGameState();
   const [, get] = useKeyboardControls();
-  const rb = useRef();
+  const rb = useRef<any>(null);
   const inTheAir = useRef(true);
   const landed = useRef(false);
-  const cameraPosition = useRef();
-  const cameraLookAt = useRef();
+  const cameraPosition = useRef<Group>(null);
+  const [initialPos, setInitialPos] = useState<{
+    x: number;
+    y: number;
+    z: number;
+  }>({ x: 0, y: 0, z: 0 });
 
-  useFrame(({ camera }) => {
+  useEffect(() => {
+    const pos = state.getState("pos");
+    if (pos) {
+      setInitialPos(pos);
+    } else {
+      // Si no hay posición en el estado, establecer una por defecto o esperar
+      setInitialPos({ x: 0, y: 0, z: 0 });
+    }
+  }, [state]);
+
+  useFrame(() => {
+    if (!rb.current) return;
     if (!player) {
       const pos = state.getState("pos");
       if (pos) {
-        rb.current.setTranslation(pos);
+        (rb.current as any).setTranslation(pos);
       }
       const rot = state.getState("rot");
       if (rot) {
-        rb.current.setRotation(rot);
+        (rb.current as any).setRotation(rot);
       }
       const anim = state.getState("animation");
       setAnimation(anim);
@@ -60,7 +74,7 @@ export const CharacterController = ({
       z: 0,
     };
 
-    const curVel = rb.current.linvel();
+    const curVel = (rb.current as any).linvel();
     vel.x = 0;
     vel.y = 0;
     vel.z = 0;
@@ -94,9 +108,11 @@ export const CharacterController = ({
       rotVel.y -= ROTATION_SPEED;
     }
 
-    rb.current.setAngvel(rotVel);
+    (rb.current as any).setAngvel(rotVel);
     // apply rotation to x and z to go in the right direction
-    const eulerRot = euler().setFromQuaternion(quat(rb.current.rotation()));
+    const eulerRot = euler().setFromQuaternion(
+      quat((rb.current as any).rotation())
+    );
     vel.applyEuler(eulerRot);
     if (
       get()[Controls.jump] ||
@@ -116,9 +132,9 @@ export const CharacterController = ({
       inTheAir.current = false;
       landed.current = true;
     }
-    rb.current.setLinvel(vel);
-    state.setState("pos", rb.current.translation());
-    state.setState("rot", rb.current.rotation());
+    (rb.current as any).setLinvel(vel);
+    state.setState("pos", (rb.current as any).translation());
+    state.setState("rot", (rb.current as any).rotation());
 
     // ANIMATION
     const movement = Math.abs(vel.x) + Math.abs(vel.z);
@@ -139,18 +155,19 @@ export const CharacterController = ({
 
   return (
     <RigidBody
+      position={[initialPos.x, initialPos.y, initialPos.z]}
       {...props}
       colliders={false}
       canSleep={false}
       enabledRotations={[false, true, false]}
       ref={rb}
       onCollisionEnter={(e) => {
-        if (e.other.rigidBodyObject.name === "bbva") {
+        if (e.other.rigidBodyObject?.name === "bbva") {
           inTheAir.current = false;
           landed.current = true;
-          const curVel = rb.current.linvel();
+          const curVel = (rb.current as any).linvel();
           curVel.y = 0;
-          rb.current.setLinvel(curVel);
+          (rb.current as any).setLinvel(curVel);
         }
       }}
       gravityScale={2.5}
